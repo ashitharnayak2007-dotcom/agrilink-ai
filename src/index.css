@@ -1,0 +1,35 @@
+/* Global Styles for AgriLink AI */
+:root {
+  --primary: #15803d;         /* Forest green */
+  --primary-hover: #166534;   /* Darker green on hover */
+  --primary-light: #dcfce7;   /* Light green for badges/highlights */
+  --accent: #10b981;          /* Emerald accent */
+  --text-dark: #0f172a;       /* Slate dark for headings */
+  --text-muted: #475569;      /* Slate muted for subheadings */
+  --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f8fafc 100%);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --border-color: #e2e8f0;
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-gradient);
+  color: var(--text-dark);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
