@@ -25,6 +25,17 @@ function App() {
   const [traces, setTraces] = useState([]);
   const [decisionData, setDecisionData] = useState(null);
 
+  const [colabUrl, setColabUrlState] = useState(() => localStorage.getItem('agrilink_colab_url') || '');
+
+  const setColabUrl = (url) => {
+    setColabUrlState(url);
+    if (url) {
+      localStorage.setItem('agrilink_colab_url', url);
+    } else {
+      localStorage.removeItem('agrilink_colab_url');
+    }
+  };
+
   // Execute the multi-agent pipeline
   const executeAnalysis = async (inputToUse = formData) => {
     setIsAnalyzing(true);
@@ -44,7 +55,8 @@ function App() {
           });
           setTraces(updatedTraces);
         },
-        700 // smooth pacing for presentation
+        700, // smooth pacing for presentation
+        colabUrl // pass configured Google Colab backend URL
       );
 
       setDecisionData(result.insights.decision.data);
@@ -72,6 +84,8 @@ function App() {
         setActiveTab={setActiveTab}
         onSelectPreset={handleSelectPreset}
         presets={DEMO_PRESETS}
+        colabUrl={colabUrl}
+        setColabUrl={setColabUrl}
       />
 
       {/* Main View Router */}

@@ -1,6 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function Navbar({ activeTab, setActiveTab, onSelectPreset, presets }) {
+export default function Navbar({
+  activeTab,
+  setActiveTab,
+  onSelectPreset,
+  presets,
+  colabUrl,
+  setColabUrl
+}) {
+  const [showColabModal, setShowColabModal] = useState(false);
+  const [tempUrl, setTempUrl] = useState(colabUrl || '');
+
+  const handleSaveColab = (e) => {
+    e.preventDefault();
+    setColabUrl(tempUrl.trim());
+    setShowColabModal(false);
+  };
+
   return (
     <header className="navbar">
       <div className="navbar-brand">
@@ -42,6 +58,17 @@ export default function Navbar({ activeTab, setActiveTab, onSelectPreset, preset
       </nav>
 
       <div className="navbar-actions">
+        {/* Colab Connection Button */}
+        <button
+          type="button"
+          className={`btn-colab-connect ${colabUrl ? 'connected' : ''}`}
+          onClick={() => setShowColabModal(true)}
+          title="Connect live Google Colab Python backend"
+        >
+          <span className="colab-dot"></span>
+          <span>{colabUrl ? 'Colab Connected' : 'Connect Colab'}</span>
+        </button>
+
         <div className="preset-dropdown-container">
           <span className="preset-label">⚡ Judge Demos:</span>
           <select 
@@ -60,11 +87,59 @@ export default function Navbar({ activeTab, setActiveTab, onSelectPreset, preset
             ))}
           </select>
         </div>
+
         <div className="badge-hackathon">
           <span className="dot-live"></span>
           Multi-Agent v1.0
         </div>
       </div>
+
+      {/* Colab Settings Modal */}
+      {showColabModal && (
+        <div className="modal-overlay" onClick={() => setShowColabModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🔗 Connect Google Colab Python Backend</h3>
+              <button className="btn-close-modal" onClick={() => setShowColabModal(false)}>✕</button>
+            </div>
+            <p className="modal-desc">
+              Paste your public Ngrok or Localtunnel URL generated from your Google Colab notebook (e.g., <code>https://your-tunnel.ngrok-free.dev</code>).
+            </p>
+            <form onSubmit={handleSaveColab}>
+              <div className="modal-input-wrap">
+                <input
+                  type="url"
+                  className="form-control"
+                  placeholder="https://empathy-rinsing-obliged.ngrok-free.dev"
+                  value={tempUrl}
+                  onChange={(e) => setTempUrl(e.target.value)}
+                />
+              </div>
+              <div className="modal-actions">
+                {colabUrl && (
+                  <button
+                    type="button"
+                    className="btn-disconnect"
+                    onClick={() => {
+                      setColabUrl('');
+                      setTempUrl('');
+                      setShowColabModal(false);
+                    }}
+                  >
+                    Disconnect
+                  </button>
+                )}
+                <button type="button" className="btn-outline" onClick={() => setShowColabModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary">
+                  Save & Connect
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

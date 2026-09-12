@@ -21,7 +21,7 @@ export const AGENT_PIPELINE_STAGES = [
  * Execute the autonomous multi-agent pipeline step by step.
  * Allows step callback for real-time visual demonstration.
  */
-export async function runOrchestratorPipeline(farmerInput, onProgressUpdate, stepDelayMs = 600) {
+export async function runOrchestratorPipeline(farmerInput, onProgressUpdate, stepDelayMs = 600, colabBackendUrl = '') {
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   const traces = [];
   const completedAgents = [];
@@ -38,6 +38,38 @@ export async function runOrchestratorPipeline(farmerInput, onProgressUpdate, ste
     traces.push(entry);
     return entry;
   };
+
+  // Check if Colab Backend URL is configured
+  let colabData = null;
+  if (colabBackendUrl && colabBackendUrl.trim() !== '') {
+    try {
+      const cleanUrl = colabBackendUrl.trim().replace(/\/+$/, '');
+      recordTrace('Orchestrator Agent', 'Google Colab Python Server', `Connecting to live Colab backend at: ${cleanUrl}/api/analyze`);
+      const response = await fetch(`${cleanUrl}/api/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
+          crop: farmerInput.crop,
+          quantity_kg: Number(farmerInput.quantityKg),
+          location: farmerInput.location,
+          harvest_timing: farmerInput.harvestTiming,
+          storage_available: Boolean(farmerInput.storageAvailable)
+        })
+      });
+
+      if (response.ok) {
+        colabData = await response.json();
+        recordTrace('Google Colab Python Server', 'Orchestrator Agent', `✓ Received live multi-agent payload from Colab Python kernel!`, colabData);
+      } else {
+        recordTrace('Google Colab Python Server', 'Orchestrator Agent', `⚠️ Colab responded with status ${response.status}. Falling back to local agents.`);
+      }
+    } catch (colabErr) {
+      recordTrace('Google Colab Python Server', 'Orchestrator Agent', `⚠️ Colab connection error: ${colabErr.message}. Executing local multi-agent swarm.`);
+    }
+  }
 
   // Step 0: Orchestrator initialization
   recordTrace(
@@ -56,6 +88,7 @@ export async function runOrchestratorPipeline(farmerInput, onProgressUpdate, ste
     data: { farmerInput },
     thoughts: [
       `Parsing farmer query: Crop=${farmerInput.crop}, Qty=${farmerInput.quantityKg} kg, Location=${farmerInput.location}.`,
+      colabData ? `🔗 Cloud Backend: Google Colab Python Agent swarm responded successfully.` : `🖥️ Execution Mode: Client-side autonomous multi-agent engine.`,
       `Establishing inter-agent communication pipeline: Crop → Weather → Market → Storage → Logistics → Negotiation → Decision.`,
       `Delegating Stage 1 to Crop Agent.`
     ]
